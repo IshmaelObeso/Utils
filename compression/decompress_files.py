@@ -1,3 +1,44 @@
+"""
+File: decompress_files.py
+
+Author: Ishmael Obeso
+
+Description:
+    This script provides functionality to unpack a list of source archive files into a specified output directory.
+    It supports various options such as overwriting existing unpacked archives, deleting source archives after unpacking,
+    and configuring the verbosity of logging.
+
+Usage:
+    python script_name.py --source_files <source_archive_1> <source_archive_2> ... --output_directory <output_directory>
+                          [--overwrite] [--delete_source] [--verbose]
+
+Command Line Arguments:
+    --source_files, -s: List of source archive files to unpack.
+    --output_directory: Directory to output the unpacked files.
+    --overwrite, -o: Flag indicating whether to overwrite existing unpacked archives.
+    --delete_source, -d: Flag indicating whether to delete source archives after unpacking.
+    --verbose, -v: Verbosity flag to control the level of logging. Default is set to WARNING.
+
+Functions:
+    - parse_arguments(): Parses command line arguments using argparse and returns the parsed arguments.
+    - unpack_archive(source_file, output_directory, logger, delete): Unpacks a source archive file into the output directory.
+    - main(source_files, output_directory, overwrite, delete_source, log_level): Main function to orchestrate the unpacking process.
+
+Logging:
+    - The script utilizes the logging module to provide detailed information about the unpacking process.
+    - Log messages are written to both the console and log files in the 'logs' directory.
+
+Utilities:
+    - Various utility functions such as get_folder_size, get_file_size, get_time_hh_mm_ss, and setup_logger are imported from the 'utils' module.
+
+Execution:
+    - When executed as the main script, it parses command line arguments, sets up logging, and calls the main function to initiate the unpacking process.
+
+Example:
+    python script_name.py --source_files archive1.zip archive2.tar.gz --output_directory output_folder -o -d -v
+"""
+
+
 import pathlib
 import shutil
 import logging
@@ -23,6 +64,14 @@ def parse_arguments() -> argparse.Namespace:
     p.add_argument('--output_directory', required=True, help="directory to output unpacked archives")
     p.add_argument('--overwrite', '-o', action='store_true', help='whether to overwrite an existing unpacked archive')
     p.add_argument('--delete_source', '-d', action='store_true', help='whether to delete source archives after unpacking')
+    p.add_argument(
+                   '-v', '--verbose',
+                   help='Be verbose',
+                   action='store_const',
+                   dest='log_level',
+                   const=logging.INFO,
+        default=logging.WARNING
+    )
 
     args = p.parse_args()
 
@@ -35,6 +84,18 @@ def unpack_archive(
         logger: logging.Logger,
         delete: bool,
 ) -> None:
+    """
+    Unpacks the given source archive file into the specified output directory.
+
+    Args:
+        source_file (Union[str, pathlib.Path]): Path to the source archive file.
+        output_directory (Union[str, pathlib.Path]): Directory to output the unpacked files.
+        logger (logging.Logger): Logger object for logging messages.
+        delete (bool): Whether to delete the source archive file after unpacking.
+
+    Returns:
+        None
+    """
 
     try:
         # Log the start of the unpacking process
@@ -89,11 +150,25 @@ def main(
         output_directory: Union[str, Path],
         overwrite: bool,
         delete_source: bool,
+        log_level: int,
 ) -> None:
+    """
+    Main function to unpack archives based on provided command line arguments.
+
+    Args:
+        source_files (List[str]): List of source archive files to unpack.
+        output_directory (Union[str, Path]): Directory to output the unpacked files.
+        overwrite (bool): Whether to overwrite existing unpacked archives.
+        delete_source (bool): Whether to delete source archives after unpacking.
+        log_level (int): Logging severity level.
+
+    Returns:
+        None
+    """
 
     start_time = time.time()
 
-    logger = setup_logger(output_directory, log_type='decompression')
+    logger = setup_logger(output_directory, log_level=log_level, log_type='decompression')
 
     # check if output dir exists, if not create it
     output_directory = Path(output_directory)
@@ -112,13 +187,15 @@ def main(
 
     if overwrite:
         # Log whether we will overwrite archives or not
-        logger.warning(f'Overwriting existing unpacked archives: {overwrite}')
+        logger.info(f'Overwriting existing unpacked archives: {overwrite}')
 
     if delete_source:
         # log whether we will delete source directories after archiging
-        logging.warning(f'Deleting source archives after unpacking: {delete_source}')
+        logging.info(f'Deleting source archives after unpacking: {delete_source}')
 
     for source_file in source_files:
+
+        source_file = Path(source_file)
 
         # if we are not overwriting, check if unpacked archive directory exists, if it does, skip
         if not overwrite:
@@ -168,6 +245,7 @@ if __name__ == "__main__":
     output_directory = args.output_directory
     overwrite = args.overwrite
     delete_source = args.delete_source
+    log_level = args.log_level
 
     # run main function
     main(
@@ -175,4 +253,5 @@ if __name__ == "__main__":
         output_directory=output_directory,
         overwrite=overwrite,
         delete_source=delete_source,
+        log_level=log_level,
     )

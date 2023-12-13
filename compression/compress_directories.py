@@ -10,12 +10,41 @@ Description:
 
 Usage:
     python compress_directories.py --source_directories [dir1] [dir2] ... --output_directory [output_dir]
-                             --archive_format format --overwrite --delete_source
+                             --archive_format format --overwrite --delete_source --verbose
 
     Example:
     python compress_directories.py --source_directories /path/to/source1 /path/to/source2
-                             --output_directory /path/to/output --archive_format zip --overwrite --delete_source
+                             --output_directory /path/to/output --archive_format zip -o -d -v
+
+Command Line Arguments:
+    --source_directories, -s: List of source directories to archive.
+    --output_directory: Directory to output archives.
+    --archive_format: Format of the archive (e.g., 'zip', 'tar', 'gztar', 'bztar', 'xztar').
+    --overwrite, -o: Flag indicating whether to overwrite an existing archive.
+    --delete_source, -d: Flag indicating whether to delete source directories after archiving.
+    --verbose, -v: Verbosity flag to control the level of logging. Default is set to WARNING.
+
+Enums:
+    ArchiveFormat: Enum representing different archive formats (ZIP, TAR, GZTAR, BZTAR, XZTAR).
+
+Functions:
+    - parse_arguments(): Parses command line arguments using argparse and returns the parsed arguments.
+    - archive_directory(source_directory, archive_path, root_dir, base_dir, archive_format, logger, delete):
+        Archives a source directory into the specified archive file.
+    - main(source_directories, output_directory, archive_format, overwrite, delete_source, log_level):
+        Main function to orchestrate the archiving process.
+
+Utilities:
+    - Various utility functions such as get_folder_size, get_file_size, get_time_hh_mm_ss, and setup_logger are imported from the 'utils' module.
+
+Execution:
+    - When executed as the main script, it parses command line arguments, sets up logging, and calls the main function to initiate the archiving process.
+
+Example:
+    python compress_directories.py --source_directories /path/to/source --output_directory /path/to/output
+                             --archive_format zip --overwrite --delete_source
 """
+
 
 
 import pathlib
@@ -52,6 +81,14 @@ def parse_arguments() -> argparse.Namespace:
     p.add_argument('--archive_format', default='bztar', help="format of the archive (e.g., 'zip', 'tar', 'gztar', 'bztar', 'xztar')")
     p.add_argument('--overwrite', '-o', action='store_true', help='whether to overwrite an existing archive')
     p.add_argument('--delete_source', '-d', action='store_true', help='whether to delete source directories after archiving')
+    p.add_argument(
+                   '-v', '--verbose',
+                   help='Be verbose',
+                   action='store_const',
+                   dest='log_level',
+                   const=logging.INFO,
+        default=logging.WARNING
+    )
 
     args = p.parse_args()
 
@@ -118,8 +155,10 @@ def archive_directory(
         # Log the completion of the archiving process
         logging.info(f'Archive created at: {archive_path}')
 
+        archive_output_filepath = Path(f'{archive_path}.{archive_format.value}')
+
         # get the size of the compressed archive
-        archive_size = get_file_size(archive_path)
+        archive_size = get_file_size(archive_output_filepath)
 
         # if there was no error calculating archive size, print it out
         if archive_size:
@@ -152,6 +191,7 @@ def main(
         archive_format: ArchiveFormat,
         overwrite: bool,
         delete_source: bool,
+        log_level: int,
 ) -> None:
     """
     The main entry point for the script.
@@ -162,6 +202,8 @@ def main(
         archive_format (ArchiveFormat): Archive format (ZIP, TAR, GZTAR, BZTAR, XZTAR).
         overwrite (bool): Flag indicating whether to overwrite existing archives.
         delete_source (bool): Flag indicating whether to delete source directories after archiving.
+        log_level (int): The logging severity level to set. Should be one defined in the logging module
+                (e.g., logging.DEBUG, logging.INFO)
 
     Returns:
         None
@@ -169,7 +211,7 @@ def main(
 
     start_time = time.time()
 
-    logger = setup_logger(output_directory, log_type='compression')
+    logger = setup_logger(output_directory, log_level=log_level, log_type='compression')
 
     # check if output dir exists, if not create it
     output_directory = Path(output_directory)
@@ -188,11 +230,11 @@ def main(
 
     if overwrite:
         # Log whether we will overwrite archives or not
-        logger.warning(f'Overwriting existing archives: {overwrite}')
+        logger.info(f'Overwriting existing archives: {overwrite}')
 
     if delete_source:
         # log whether we will delete source directories after archiging
-        logging.warning(f'Deleting source directories after archiving: {delete_source}')
+        logging.info(f'Deleting source directories after archiving: {delete_source}')
 
     for source_directory in source_directories:
 
@@ -262,6 +304,7 @@ if __name__ == "__main__":
     archive_format = args.archive_format
     overwrite = args.overwrite
     delete_source = args.delete_source
+    log_level = args.log_level
 
     # run main function
     main(
@@ -270,4 +313,5 @@ if __name__ == "__main__":
         archive_format=archive_format,
         overwrite=overwrite,
         delete_source=delete_source,
+        log_level=log_level
     )

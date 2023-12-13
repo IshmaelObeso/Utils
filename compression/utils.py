@@ -146,12 +146,14 @@ def get_time_hh_mm_ss(sec: Union[int, float]) -> str:
     return time_string
 
 
-def setup_logger(output_directory: Union[str, Path], log_type: str = None) -> logging.Logger:
+def setup_logger(output_directory: Union[str, Path], log_level: int = logging.WARNING, log_type: str = None) -> logging.Logger:
     """
     Set up the logger for the script.
 
     Args:
         output_directory (Union[str, Path]): The directory to output log files.
+        log_level (int): The logging severity level to set. Should be one defined in the logging module
+                        (e.g., logging.DEBUG, logging.INFO)
         log_type (str, optional): A type identifier for the log. Defaults to None.
 
     Returns:
@@ -170,7 +172,10 @@ def setup_logger(output_directory: Union[str, Path], log_type: str = None) -> lo
 
     # define directory to output log files, and create if it doesn't exist
     log_files_dir = Path(output_directory, 'logs')
-    log_files_dir.mkdir(parents=True, exist_ok=True)
+
+    # check if log dir exists, if not, make it
+    if not log_files_dir.is_dir():
+        log_files_dir.mkdir(parents=True, exist_ok=True)
 
     log_filepath = Path(log_files_dir, log_file_name)
 
@@ -179,7 +184,6 @@ def setup_logger(output_directory: Union[str, Path], log_type: str = None) -> lo
 
     # set up logger
     logging.basicConfig(
-        level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(),
@@ -187,6 +191,9 @@ def setup_logger(output_directory: Union[str, Path], log_type: str = None) -> lo
             logging.FileHandler(log_filepath)
         ],
     )
+
+    # set log level seperately from the logger instantiation, so it works properly
+    logging.getLogger().setLevel(log_level)
 
     # # print log file location
     logging.info(f'Log file output to: {log_filepath}')
