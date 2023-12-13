@@ -56,15 +56,8 @@ from datetime import timedelta, datetime
 from pathlib import Path
 from typing import Union, List
 from enum import Enum
-from utils import get_folder_size, get_file_size, get_time_hh_mm_ss, setup_logger
+from utils import get_folder_size, get_file_size, get_time_hh_mm_ss, setup_logger, ArchiveFormat
 
-
-class ArchiveFormat(Enum):
-    ZIP = "zip"
-    TAR = "tar"
-    GZTAR = "tar.gz"
-    BZTAR = "tar.bz2"
-    XZTAR = "tar.xz"
 
 
 def parse_arguments() -> argparse.Namespace:

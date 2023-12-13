@@ -48,7 +48,7 @@ from datetime import timedelta, datetime
 from pathlib import Path
 from typing import Union, List
 from enum import Enum
-from utils import get_folder_size, get_file_size, get_time_hh_mm_ss, setup_logger
+from utils import get_folder_size, get_file_size, get_time_hh_mm_ss, setup_logger, get_unpacked_archive_directory
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -109,10 +109,14 @@ def unpack_archive(
             # print the size of the original directory
             logging.info(f'Original Archive Size: {archive_size:.2f}')
 
-        # Unpack the archive
+        # # Unpack the archive
         shutil.unpack_archive(source_file, output_directory)
 
-        output_archive_path = Path(output_directory, Path(source_file.stem))
+        # Get the directory of the unpacked archive
+        unpacked_archive_directory = get_unpacked_archive_directory(source_file)
+
+        # get the whole output archive path
+        output_archive_path = Path(output_directory, Path(unpacked_archive_directory))
 
         # Log the completion of the archiving process
         logging.info(f'Unpacked Archive created at: {output_archive_path}')
@@ -231,7 +235,7 @@ def main(
     total_time = end_time - start_time
 
     # Log script completion, including total number of archives created
-    logging.info(f'Unpacking Archives Finished! Total Directories Created: {len(source_filee)}')
+    logging.info(f'Unpacking Archives Finished! Total Directories Created: {len(source_file)}')
     logging.info(f'Total Time Elapsed: {get_time_hh_mm_ss(total_time)}')
 
 

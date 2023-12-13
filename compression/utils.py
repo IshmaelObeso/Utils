@@ -8,6 +8,44 @@ from pathlib import Path
 from typing import Union, List
 from enum import Enum
 
+class ArchiveFormat(Enum):
+    """
+    Enumeration representing different archive formats.
+
+    This enum defines the supported archive formats for use in the script. Each format is associated
+    with a string value that corresponds to commonly used archive file extensions.
+
+    Supported Formats:
+        - ZIP: ZIP archive format.
+        - TAR: TAR archive format.
+        - GZTAR: GZipped TAR archive format.
+        - BZTAR: BZipped TAR archive format.
+        - XZTAR: XZipped TAR archive format.
+
+    Example:
+        To use an archive format in the script, you can reference the enum values like this:
+
+        ```python
+        format = ArchiveFormat.ZIP
+        ```
+
+    Attributes:
+        ZIP (str): String value representing the ZIP archive format.
+        TAR (str): String value representing the TAR archive format.
+        GZTAR (str): String value representing the GZipped TAR archive format.
+        BZTAR (str): String value representing the BZipped TAR archive format.
+        XZTAR (str): String value representing the XZipped TAR archive format.
+    """
+    ZIP = "zip"
+    TAR = "tar"
+    GZTAR = "tar.gz"
+    BZTAR = "tar.bz2"
+    XZTAR = "tar.xz"
+
+class ArchiveSuffixes(Enum):
+
+    SUFFIXES = ['.zip', '.tar', '.gz', '.bz2', '.xz']
+
 
 class ByteSize(int):
     """
@@ -199,3 +237,48 @@ def setup_logger(output_directory: Union[str, Path], log_level: int = logging.WA
     logging.info(f'Log file output to: {log_filepath}')
 
     return logger
+
+def remove_suffixes(path: Path, suffixes_to_remove: List[str]) -> Path:
+    """
+    Removes specified suffixes from a pathlib.Path object
+
+    Args:
+    - path (Path): The pathlib.Path object
+    - suffixes_to_remove (list): List of suffixes to be removed
+
+    Returns:
+    - Path: the modified pathlib.Path object
+
+    """
+
+    # remove extension suffixes
+    for suffix in suffixes_to_remove:
+        path = path.with_suffix(path.suffix.removesuffix(suffix))
+
+    return path
+
+
+def get_unpacked_archive_directory(source_file: Union[str, Path]) -> Path:
+    """
+    Get the unpacked archive directory path from the source file path.
+
+    Args:
+        source_file (str): The path to the source archive file.
+
+    Returns:
+        Path: The path to the unpacked archive directory.
+    """
+    # the path the source archive file
+    source_file = Path(source_file)
+
+    # get the archive directory suffixes
+    unpacked_archive_directory_suffixes = source_file.suffixes
+    # reverse their order to they are removed from right to left
+    unpacked_archive_directory_suffixes.reverse()
+    # Preserve the order of suffixes when getting the intersection
+    archive_suffixes_to_remove = [suffix for suffix in unpacked_archive_directory_suffixes if suffix in ArchiveSuffixes.SUFFIXES.value]
+
+    # Remove suffixes from archive directory name
+    path = remove_suffixes(source_file, archive_suffixes_to_remove)
+
+    return path
