@@ -139,8 +139,9 @@ def unpack_archive(
             # log delete
             logging.info(f'Deleting Source Archive File: {source_file}')
 
-            # delete source dir
-            shutil.rmtree(source_file)
+            # delete source file
+            if Path(source_file).is_file():
+                shutil.unlink(source_file, missing_ok=True)
 
     except Exception as e:
         # log any errors during unpacking
