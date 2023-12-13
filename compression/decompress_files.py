@@ -110,13 +110,13 @@ def unpack_archive(
             logging.info(f'Original Archive Size: {archive_size:.2f}')
 
         # # Unpack the archive
-        shutil.unpack_archive(source_file, output_directory)
+        # shutil.unpack_archive(source_file, output_directory)
 
         # Get the directory of the unpacked archive
         unpacked_archive_directory = get_unpacked_archive_directory(source_file)
 
         # get the whole output archive path
-        output_archive_path = Path(output_directory, Path(unpacked_archive_directory))
+        output_archive_path = Path(output_directory, Path(unpacked_archive_directory).stem)
 
         # Log the completion of the archiving process
         logging.info(f'Unpacked Archive created at: {output_archive_path}')
