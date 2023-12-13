@@ -44,7 +44,7 @@ class ArchiveFormat(Enum):
 
 class ArchiveSuffixes(Enum):
 
-    SUFFIXES = ['.zip', '.tar', '.gz', '.bz2', '.xz']
+    SUFFIXES = {'.zip', '.tar', '.gz', '.bz2', '.xz'}
 
 
 class ByteSize(int):
