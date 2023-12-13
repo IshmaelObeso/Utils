@@ -113,7 +113,7 @@ def unpack_archive(
         shutil.unpack_archive(source_file, output_directory)
 
         # Get the directory of the unpacked archive
-        unpacked_archive_directory = get_unpacked_archive_directory(source_file)
+        unpacked_archive_directory = get_base_directory(source_file)
 
         # get the whole output archive path
         output_archive_path = Path(output_directory, Path(unpacked_archive_directory).stem)

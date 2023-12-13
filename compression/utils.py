@@ -258,15 +258,15 @@ def remove_suffixes(path: Path, suffixes_to_remove: List[str]) -> Path:
     return path
 
 
-def get_unpacked_archive_directory(source_file: Union[str, Path]) -> Path:
+def get_base_directory(source_file: Union[str, Path]) -> Path:
     """
-    Get the unpacked archive directory path from the source file path.
+    Get the base directory path from the source file path.
 
     Args:
         source_file (str): The path to the source archive file.
 
     Returns:
-        Path: The path to the unpacked archive directory.
+        Path: The path to the base directory.
     """
     # the path the source archive file
     source_file = Path(source_file)

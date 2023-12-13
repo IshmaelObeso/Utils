@@ -56,7 +56,7 @@ from datetime import timedelta, datetime
 from pathlib import Path
 from typing import Union, List
 from enum import Enum
-from utils import get_folder_size, get_file_size, get_time_hh_mm_ss, setup_logger, ArchiveFormat
+from utils import get_folder_size, get_file_size, get_time_hh_mm_ss, setup_logger, get_base_directory, ArchiveFormat
 
 
 
@@ -71,7 +71,7 @@ def parse_arguments() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument('--source_directories', '-s', nargs='+', help='source directories to archive', required=True)
     p.add_argument('--output_directory', required=True, help="directory to output archives")
-    p.add_argument('--archive_format', default='bztar', help="format of the archive (e.g., 'zip', 'tar', 'gztar', 'bztar', 'xztar')")
+    p.add_argument('--archive_format', default='xztar', help="format of the archive (e.g., 'zip', 'tar', 'gztar', 'bztar', 'xztar')")
     p.add_argument('--overwrite', '-o', action='store_true', help='whether to overwrite an existing archive')
     p.add_argument('--delete_source', '-d', action='store_true', help='whether to delete source directories after archiving')
     p.add_argument(
@@ -148,7 +148,7 @@ def archive_directory(
         # Log the completion of the archiving process
         logging.info(f'Archive created at: {archive_path}')
 
-        archive_output_filepath = Path(f'{archive_path}.{archive_format.value}')
+        archive_output_filepath = Path(f'{base_dir}.{archive_format.value}')
 
         # get the size of the compressed archive
         archive_size = get_file_size(archive_output_filepath)
@@ -232,20 +232,21 @@ def main(
     for source_directory in source_directories:
 
         # Specify the base name for the archive (excluding the extension)
-        archive_base_name = Path(source_directory).stem
+        archive_base_name = Path(source_directory).name
 
         # Full path for the archive file minus the extension
         archive_path = Path(output_directory, archive_base_name)
 
         # root directory
         root_dir = Path(source_directory).parent
+
         # base directory
-        base_dir = Path(source_directory).stem
+        base_dir = Path(source_directory).name
 
         # if we are not overwriting, check if archive file exists, if it does, skip
         if not overwrite:
 
-            archive_filepath = Path(output_directory, f'{archive_base_name}.{archive_format}')
+            archive_filepath = Path(output_directory, f'{base_dir}.{archive_format}')
 
             # if the archive already exists, skip it
             if archive_filepath.is_file():
